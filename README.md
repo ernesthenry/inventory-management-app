@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This is an inventory managent app built with Nextjs where users upload images and they are classified using Artificial intelligence
 
 ## Getting Started
 
