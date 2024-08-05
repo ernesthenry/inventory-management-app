@@ -1,7 +1,8 @@
 'use client';
 
+
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Modal, TextField, Paper } from '@mui/material';
+import { Box, Typography, Button, Modal, TextField, Paper, Stack } from '@mui/material';
 import { firestore, storage } from '@/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
@@ -12,6 +13,7 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
+
 } from 'firebase/firestore';
 import ImageUploading from 'react-images-uploading';
 
@@ -125,6 +127,10 @@ export default function Home() {
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredInventory = inventory.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   return (
     <div className="container">
       <div className="sub-header" style={{ backgroundColor: colors.primaryRed, padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
@@ -210,6 +216,7 @@ export default function Home() {
           <Typography variant="h4" style={{ marginBottom: '15px', color: colors.white, fontWeight: 'bold' }}>
             Add by Image
           </Typography>
+
           <ImageUploading
             multiple
             value={images}
