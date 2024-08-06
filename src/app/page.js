@@ -127,9 +127,6 @@ export default function Home() {
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredInventory = inventory.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
 
   return (
     <div className="container">
