@@ -24,4 +24,4 @@ This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-opti
 ## Deploy on Vercel
 
 
-Check out the  [Link]([https://nextjs.org/docs/deployment](https://inventory-management-app-git-omar-kato-ernest-henrys-projects.vercel.app/)) for the live app
+Check out the  [Link]([https://nextjs.org/docs/deployment](https://inventory-management-app-git-omar-kato-ernest-henrys-projects.vercel.app/) for the live app
