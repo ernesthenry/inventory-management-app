@@ -1,9 +1,10 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import { Box, Stack, Typography, Button, Modal, TextField } from '@mui/material'
-import { firestore, storage } from '@/firebase'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Button, Modal, TextField, Paper, Stack } from '@mui/material';
+import { firestore, storage } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   collection,
   doc,
@@ -12,8 +13,19 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
-} from 'firebase/firestore'
-import ImageUploading from 'react-images-uploading'
+
+} from 'firebase/firestore';
+import ImageUploading from 'react-images-uploading';
+
+const colors = {
+  primaryRed: '#e63946',
+  lightRed: '#f1aeb5',
+  white: '#f1faee',
+  offWhite: '#a8dadc',
+  dark: '#1d3557',
+  green: '#4CAF50',
+  blue: '#3f51b5',
+};
 
 const style = {
   position: 'absolute',
@@ -28,99 +40,183 @@ const style = {
   display: 'flex',
   flexDirection: 'column',
   gap: 3,
-}
+};
 
 export default function Home() {
-  const [inventory, setInventory] = useState([])
-  const [open, setOpen] = useState(false)
-  const [itemName, setItemName] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [images, setImages] = useState([])
-  const maxNumber = 69
+  const [inventory, setInventory] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [itemName, setItemName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const maxNumber = 69;
 
   const handleImageChange = (imageList, addUpdateIndex) => {
-    setImages(imageList)
-  }
+    setImages(imageList);
+  };
 
   const uploadImageToFirebase = async (file) => {
-    const storageRef = ref(storage, `images/${file.name}`)
-    await uploadBytes(storageRef, file)
-    return await getDownloadURL(storageRef)
-  }
+    const storageRef = ref(storage, `images/${file.name}`);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (images.length === 0) return
-    const imageUrl = await uploadImageToFirebase(images[0].file)
-    console.log('Uploaded image URL:', imageUrl)
+    e.preventDefault();
+    if (images.length === 0) return;
+    const imageUrl = await uploadImageToFirebase(images[0].file);
+    console.log('Uploaded image URL:', imageUrl);
     // Call your image analysis API here with imageUrl
-  }
+  };
 
   const updateInventory = async () => {
     try {
-      const snapshot = query(collection(firestore, 'inventory'))
-      const docs = await getDocs(snapshot)
-      const inventoryList = []
+      const snapshot = query(collection(firestore, 'inventory'));
+      const docs = await getDocs(snapshot);
+      const inventoryList = [];
       docs.forEach((doc) => {
-        inventoryList.push({ name: doc.id, ...doc.data() })
-      })
-      setInventory(inventoryList)
+        inventoryList.push({ name: doc.id, ...doc.data() });
+      });
+      setInventory(inventoryList);
     } catch (error) {
-      console.error('Error fetching inventory:', error)
+      console.error('Error fetching inventory:', error);
     }
-  }
+  };
 
   useEffect(() => {
-    updateInventory()
-  }, [])
+    updateInventory();
+  }, []);
 
   const addItem = async (item) => {
     try {
-      const docRef = doc(collection(firestore, 'inventory'), item)
-      const docSnap = await getDoc(docRef)
+      const docRef = doc(collection(firestore, 'inventory'), item);
+      const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        const { quantity } = docSnap.data()
-        await setDoc(docRef, { quantity: quantity + 1 })
+        const { quantity } = docSnap.data();
+        await setDoc(docRef, { quantity: quantity + 1 });
       } else {
-        await setDoc(docRef, { quantity: 1 })
+        await setDoc(docRef, { quantity: 1 });
       }
-      await updateInventory()
+      await updateInventory();
     } catch (error) {
-      console.error('Error adding item:', error)
+      console.error('Error adding item:', error);
     }
-  }
+  };
 
   const removeItem = async (item) => {
     try {
-      const docRef = doc(collection(firestore, 'inventory'), item)
-      const docSnap = await getDoc(docRef)
+      const docRef = doc(collection(firestore, 'inventory'), item);
+      const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        const { quantity } = docSnap.data()
+        const { quantity } = docSnap.data();
         if (quantity === 1) {
-          await deleteDoc(docRef)
+          await deleteDoc(docRef);
         } else {
-          await setDoc(docRef, { quantity: quantity - 1 })
+          await setDoc(docRef, { quantity: quantity - 1 });
         }
       }
-      await updateInventory()
+      await updateInventory();
     } catch (error) {
-      console.error('Error removing item:', error)
+      console.error('Error removing item:', error);
     }
-  }
+  };
 
-  const handleOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const filteredInventory = inventory.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const filteredInventory = inventory.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
-    <>
-      <main className="container mt-6 mx-auto px-4 max-w-2xl flex flex-col gap-4">
-        <h1 className="text-4xl font-bold">GPT-4 Image Analyzer</h1>
+    <div className="container">
+      <div className="sub-header" style={{ backgroundColor: colors.primaryRed, padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+        <Typography variant="h2" style={{ fontWeight: 'bold', color: colors.white, textAlign: 'center' }}>
+          Inventory Items
+        </Typography>
+      </div>
+      <div className="main-content" style={{ backgroundColor: colors.offWhite, padding: '20px', borderRadius: '8px' }}>
+        <Box
+          sx={{
+            backgroundColor: colors.white,
+            padding: '20px',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <Button
+            variant="contained"
+            onClick={handleOpen}
+            className="btn"
+            sx={{ 
+              marginBottom: '20px', 
+              fontSize: '1rem',
+              backgroundColor: colors.primaryRed,
+              '&:hover': {
+                backgroundColor: colors.lightRed,
+              },
+              width: '100%',
+            }}
+          >
+            Add New Item
+          </Button>
+          <TextField
+            fullWidth
+            variant="outlined"
+            label="Search Items"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-field"
+            sx={{ 
+              marginBottom: '20px',
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: colors.offWhite,
+                },
+                '&:hover fieldset': {
+                  borderColor: colors.primaryRed,
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: colors.primaryRed,
+                },
+              },
+            }}
+          />
+          <ul className="item-list">
+            {filteredInventory.map(({ name, quantity }) => (
+              <li key={name} className="item">
+                <Typography variant="h6" style={{ color: colors.dark }}>
+                  {name.charAt(0).toUpperCase() + name.slice(1)}
+                </Typography>
+                <Typography variant="body1" style={{ color: colors.dark }}>
+                  Quantity: {quantity}
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  onClick={() => removeItem(name)} 
+                  className="btn-remove" 
+                  sx={{ 
+                    backgroundColor: colors.dark,
+                    '&:hover': {
+                      backgroundColor: colors.primaryRed,
+                    },
+                  }}
+                >
+                  Remove
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Box>
+        <Paper elevation={3} sx={{ padding: '20px', marginTop: '20px', backgroundColor: colors.blue }}>
+          <Typography variant="h4" style={{ marginBottom: '15px', color: colors.white, fontWeight: 'bold' }}>
+            Add by Image
+          </Typography>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           <ImageUploading
             multiple
             value={images}
@@ -138,125 +234,68 @@ export default function Home() {
               dragProps,
             }) => (
               <div className="upload__image-wrapper">
-                <button
-                  style={isDragging ? { color: 'red' } : undefined}
+                <Button
+                  variant="contained"
+                  style={{ backgroundColor: colors.white, color: colors.blue, marginRight: '10px' }}
                   onClick={onImageUpload}
                   {...dragProps}
                 >
                   Click or Drop here
-                </button>
-                &nbsp;
-                <button onClick={onImageRemoveAll}>Remove all images</button>
+                </Button>
+                <Button
+                  variant="contained"
+                  style={{ backgroundColor: colors.primaryRed, color: colors.white }}
+                  onClick={onImageRemoveAll}
+                >
+                  Remove all images
+                </Button>
                 {imageList.map((image, index) => (
                   <div key={index} className="image-item">
                     <img src={image['data_url']} alt="" width="100" />
                     <div className="image-item__btn-wrapper">
-                      <button onClick={() => onImageUpdate(index)}>Update</button>
-                      <button onClick={() => onImageRemove(index)}>Remove</button>
+                      <Button onClick={() => onImageUpdate(index)}>Update</Button>
+                      <Button onClick={() => onImageRemove(index)}>Remove</Button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </ImageUploading>
-          <button className="uppercase py-2 px-2 rounded-xl bg-lime-700 text-white">
-            Analyze
-          </button>
-        </form>
-      </main>
-
-      <Box
-        width="100vw"
-        height="100vh"
-        display="flex"
-        justifyContent="center"
-        flexDirection="column"
-        alignItems="center"
-        gap={2}
-      >
-        <Modal
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style}>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Add Item
-            </Typography>
-            <Stack width="0%" direction="row" spacing={2}>
-              <TextField
-                id="outlined-basic"
-                label="Item"
-                variant="outlined"
-                fullWidth
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  addItem(itemName)
-                  setItemName('')
-                  handleClose()
-                }}
-              >
-                Add
-              </Button>
-            </Stack>
-          </Box>
-        </Modal>
-        <Button variant="contained" onClick={handleOpen}>
-          Add New Item
-        </Button>
-        <TextField
-          width="800px"
-
-          label="Search"
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ marginBottom: '1rem' }}
-        />
-        <Box border="1px solid #333">
-          <Box
-            width="800px"
-            height="100px"
-            bgcolor="#ADD8E6"
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            style={{ backgroundColor: colors.green, color: colors.white, marginTop: '10px' }}
           >
-            <Typography variant="h2" color="#333" textAlign="center">
-              Inventory Items
-            </Typography>
-          </Box>
-          <Stack width="800px" height="300px" spacing={2} overflow="auto">
-            {filteredInventory.map(({ name, quantity }) => (
-              <Box
-                key={name}
-                width="100%"
-                minHeight="150px"
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                bgcolor="#f0f0f0"
-                paddingX={5}
-              >
-                <Typography variant="h3" color="#333" textAlign="center">
-                  {name.charAt(0).toUpperCase() + name.slice(1)}
-                </Typography>
-                <Typography variant="h3" color="#333" textAlign="center">
-                  Quantity: {quantity}
-                </Typography>
-                <Button variant="contained" onClick={() => removeItem(name)}>
-                  Remove
-                </Button>
-              </Box>
-            ))}
-          </Stack>
+            Analyze
+          </Button>
+        </Paper>
+      </div>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Add Item
+          </Typography>
+          <TextField
+            label="Item Name"
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+          />
+          <Button
+            onClick={() => {
+              addItem(itemName);
+              setItemName('');
+              handleClose();
+            }}
+          >
+            Add
+          </Button>
         </Box>
-      </Box>
-    </>
-  )
+      </Modal>
+    </div>
+  );
 }
